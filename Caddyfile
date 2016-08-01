@@ -1,0 +1,9 @@
+localhost:2015
+
+gzip
+browse
+errors
+ace {
+ path /example
+} 
+header /api Access-Control-Allow-Origin *
