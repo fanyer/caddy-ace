@@ -12,7 +12,7 @@ Middleware for [Caddy](https://caddyserver.com).
 
 ```
 gzip
-log ../access.log
+log log/access.log
 ace  {
     path /example
 }
