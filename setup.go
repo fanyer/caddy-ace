@@ -14,7 +14,7 @@ func init() {
 	})
 }
 
-// setup configures a new Markdown middleware instance.
+// setup configures a new ace middleware instance.
 func setup(c *caddy.Controller) error {
 	aceconfigs, err := aceParse(c)
 	if err != nil {

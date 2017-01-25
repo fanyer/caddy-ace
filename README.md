@@ -12,16 +12,18 @@ Middleware for [Caddy](https://caddyserver.com).
 
 ```
 gzip
+
 log ../access.log
+
 ace  {
     path /example
 }
 ```
-* **path** whose value is the relative path where you store your ace sourcefile 
+* **path** whose value is the relative path where you store your ace sourcefile
 
 
-Then just type 
+Then just type
 ```
-caddy 
+caddy
 ```
 and visit [http://localhost:2015/example/](http://localhost:2015/example/)
