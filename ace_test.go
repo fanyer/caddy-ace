@@ -1,89 +1,36 @@
 package ace
 
 import (
-	"fmt"
 	"net/http"
-	"path"
-
-	"github.com/mholt/caddy/caddyhttp/httpserver"
-	"github.com/yosssi/ace"
+	"net/http/httptest"
+	"testing"
 )
 
-type Ace struct {
-	// Server root
-	Root string
+func TestAce(t *testing.T) {
+	rootDir := "./"
 
-	// Jail the requests to site root with a mock file system
-	FileSys http.FileSystem
-
-	// Next HTTP handler in the chain
-	Next httpserver.Handler
-
-	// The list of ace configurations
-	Configs []*Config
-
-	// The list of index files to try
-	IndexFiles []string
-}
-
-type Config struct {
-
-	// Base path to match
-	Path string
-
-	// List of extensions to consider as markdown files
-	Extensions map[string]struct{}
-}
-
-// ServeHTTP implements the http.Handler interface.
-func (a Ace) ServeHTTP(w http.ResponseWriter, r *http.Request) (int, error) {
-	var cfg *Config
-	for _, c := range a.Configs {
-		if httpserver.Path(r.URL.Path).Matches(c.Path) { // not negated
-			cfg = c
-			break // or goto
-		}
+	ace := Ace{
+		Root:    rootDir,
+		FileSys: http.Dir(rootDir),
+		// Configs: []*Config{,}
 	}
 
-	fmt.Println("ace!!")
-
-	if cfg == nil {
-		return a.Next.ServeHTTP(w, r) // exit early
-	}
-
-	// We only deal with HEAD/GET
-	switch r.Method {
-	case http.MethodGet, http.MethodHead:
-	default:
-		return http.StatusMethodNotAllowed, nil
-	}
-
-	fullpath := r.URL.Path
-	basepath, filename := path.Split(fullpath)
-
-	// fmt.Println(basepath)
-	// fmt.Println(filename)
-
-	if filename == "" {
-		filename = "index"
-	}
-
-	tpl, err := ace.Load("."+basepath+"base", "."+basepath+filename, nil)
-
+	req, err := http.NewRequest("GET", "/photos/test.html", nil)
 	if err != nil {
-		fmt.Println(err)
-		// http.NotFound(w, r)
-		return a.Next.ServeHTTP(w, r)
+		t.Fatalf("Test: Could not create HTTP request: %v", err)
 	}
 
-	data := map[string]interface{}{}
-	if err := tpl.Execute(w, data); err != nil {
+	rec := httptest.NewRecorder()
 
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return a.Next.ServeHTTP(w, r)
+	ace.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Wrong status, expected: %d and got %d", http.StatusOK, rec.Code)
 	}
+	respBody := rec.Body.String()
+	expectedBody := ``
 
-	return http.StatusOK, nil
+	if respBody != expectedBody {
+		t.Fatalf("Expected body: %v got: %v", expectedBody, respBody)
+	}
 }
-
-// ace is middleware to render templated files as the HTTP response.
